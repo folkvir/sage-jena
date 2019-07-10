@@ -133,7 +133,8 @@ public class CLI implements Callable<Void> {
         if (this.time) {
             double duration = spy.getExecutionTime();
             int nbQueries = spy.getNbCalls();
-            System.err.println(MessageFormat.format("SPARQL query executed in {0}s with {1} HTTP requests", duration, nbQueries));
+            double traffic = spy.getTransferSize();
+            System.err.println(MessageFormat.format("SPARQL query executed in {0}s with {1} HTTP requests with {2}bytes received.", duration, nbQueries, traffic));
         }
 
         // display stats in CSV format (if needed)
@@ -143,7 +144,8 @@ public class CLI implements Callable<Void> {
             int nbQueries = spy.getNbCalls();
             double avgResume = spy.getMeanResumeTime();
             double avgSuspend = spy.getMeanSuspendTime();
-            String csvLine = String.format("%s,%s,%s,%s,%s", duration, nbQueries, spy.getMeanHttpTimes(), avgResume, avgSuspend);
+            double traffic = spy.getTransferSize();
+            String csvLine = String.format("%s,%s,%s,%s,%s,%s", duration, nbQueries, spy.getMeanHttpTimes(), avgResume, avgSuspend, traffic);
             try {
                 Files.write(Paths.get(this.measure), csvLine.getBytes(), StandardOpenOption.APPEND);
             } catch (IOException e) {
