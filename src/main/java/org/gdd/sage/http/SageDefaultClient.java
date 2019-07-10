@@ -359,7 +359,7 @@ public class SageDefaultClient implements SageRemoteClient {
         }
         SageResponse sageResponse = mapper.readValue(responseContent, new TypeReference<SageResponse>(){});
         spy.reportOverhead(sageResponse.stats.getResumeTime(), sageResponse.stats.getSuspendTime());
-
+        spy.reportTransferSize(responseContent.getBytes("UTF-8").length);
         // format bindings in Jena format
         List<Binding> results = sageResponse.bindings.parallelStream().map(binding -> {
             BindingHashMap b = new BindingHashMap();

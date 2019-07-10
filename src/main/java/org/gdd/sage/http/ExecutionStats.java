@@ -10,6 +10,7 @@ import java.util.List;
  * @author Thomas Minier
  */
 public class ExecutionStats {
+    private double transferSize = 0;
     private double executionTime;
     private int nbCalls;
     private List<Double> httpTimes;
@@ -70,5 +71,13 @@ public class ExecutionStats {
     public void reportOverhead(double resumeTime, double suspendTime) {
         resumeTimes.add(resumeTime);
         suspendTimes.add(suspendTime);
+    }
+
+    public double getTransferSize() {
+        return transferSize;
+    }
+
+    public void reportTransferSize(int length) {
+        transferSize += length;
     }
 }
