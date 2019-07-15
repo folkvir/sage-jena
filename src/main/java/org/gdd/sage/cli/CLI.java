@@ -57,6 +57,10 @@ public class CLI implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
+        // =============================
+        // https://stackoverflow.com/questions/54905185/how-to-debug-nullpointerexception-at-apache-jena-queryexecutionfactory-during-cr
+        org.apache.jena.query.ARQ.init();
+        // =============================
         Logger logger = ARQ.getExecLogger();
         if (this.query == null && this.file == null) {
             System.err.println("Missing required options.\n" +
