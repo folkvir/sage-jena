@@ -16,6 +16,7 @@ import picocli.CommandLine;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
@@ -88,6 +89,7 @@ public class CLI implements Callable<Void> {
         Dataset federation;
         SageConfigurationFactory factory;
         ExecutionStats spy = new ExecutionStats();
+        if(this.time) spy.setPrintLogs(true);
 
         // check if we are dealing with a classic query or an UPDATE query
         if (this.update) {
@@ -138,7 +140,8 @@ public class CLI implements Callable<Void> {
             double duration = spy.getExecutionTime();
             int nbQueries = spy.getNbCalls();
             double traffic = spy.getTransferSize();
-            System.err.println(MessageFormat.format("SPARQL query executed in {0}s with {1} HTTP requests with {2}bytes received.", duration, nbQueries, traffic));
+            double decoding = spy.getMeanDecodingResponseTime();
+            System.err.println(MessageFormat.format("SPARQL query executed in {0}s with {1} HTTP requests with {2} bytes received decoded in around {3} ms each.", duration, nbQueries, traffic, decoding));
         }
 
         // display stats in CSV format (if needed)
@@ -149,9 +152,10 @@ public class CLI implements Callable<Void> {
             double avgResume = spy.getMeanResumeTime();
             double avgSuspend = spy.getMeanSuspendTime();
             double traffic = spy.getTransferSize();
-            String csvLine = String.format("%s,%s,%s,%s,%s,%s", duration, nbQueries, spy.getMeanHttpTimes(), avgResume, avgSuspend, traffic);
+            double decoding = spy.getMeanDecodingResponseTime();
+            String csvLine = String.format("%s, %s, %s, %s, %s, %s, %s\n", duration, nbQueries, spy.getMeanHttpTimes(), avgResume, avgSuspend, traffic, decoding);
             try {
-                Files.write(Paths.get(this.measure), csvLine.getBytes(), StandardOpenOption.APPEND);
+                Files.write(Paths.get(this.measure), csvLine.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             } catch (IOException e) {
                 e.printStackTrace();
             }

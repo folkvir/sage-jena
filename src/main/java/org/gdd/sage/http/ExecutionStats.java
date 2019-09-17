@@ -16,6 +16,9 @@ public class ExecutionStats {
     private List<Double> httpTimes;
     private List<Double> resumeTimes;
     private List<Double> suspendTimes;
+    private List<Double> decodingResponseTimes;
+    private List<String> logs;
+    private boolean printLogs = false;
 
     public ExecutionStats() {
         executionTime = -1;
@@ -23,11 +26,23 @@ public class ExecutionStats {
         httpTimes = new ArrayList<>();
         resumeTimes = new ArrayList<>();
         suspendTimes = new ArrayList<>();
+        decodingResponseTimes = new ArrayList<>();
+        logs = new ArrayList<>();
     }
 
     public double getExecutionTime() {
         return executionTime;
     }
+
+    public List<String> getlogs() {
+        return this.logs;
+    }
+
+    public void setPrintLogs(boolean print) {
+        this.printLogs = print;
+    }
+
+    public List<Double> getDecodingResponseTimes() { return this.decodingResponseTimes; }
 
     public int getNbCalls() {
         return nbCalls;
@@ -52,6 +67,13 @@ public class ExecutionStats {
             return 0.0;
         }
         return Stats.meanOf(suspendTimes);
+    }
+
+    public Double getMeanDecodingResponseTime() {
+        if (decodingResponseTimes.isEmpty()) {
+            return 0.0;
+        }
+        return Stats.meanOf(decodingResponseTimes);
     }
 
     public void startTimer() {
@@ -79,5 +101,14 @@ public class ExecutionStats {
 
     public void reportTransferSize(int length) {
         transferSize += length;
+    }
+
+    public void reportDecodingResponseTime(double decodingTimeEnd) {
+        this.decodingResponseTimes.add(decodingTimeEnd);
+    }
+
+    public void reportLog(String s) {
+        if (this.printLogs) System.err.println(s);
+        logs.add(s);
     }
 }

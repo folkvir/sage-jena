@@ -32,6 +32,8 @@ import org.gdd.sage.http.results.UpdateResults;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.rmi.ServerError;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -352,14 +354,18 @@ public class SageDefaultClient implements SageRemoteClient {
      * @throws IOException
      */
     private QueryResults decodeResponse(HttpResponse response) throws IOException {
+        double decodingTimeStart = System.currentTimeMillis();
         String responseContent = IOUtils.toString(response.getContent(), Charset.forName("UTF-8"));
         int statusCode = response.getStatusCode();
         if (statusCode != 200) {
             throw new IOException("Unexpected error when executing HTTP request: " + responseContent);
         }
         SageResponse sageResponse = mapper.readValue(responseContent, new TypeReference<SageResponse>(){});
-        spy.reportOverhead(sageResponse.stats.getResumeTime(), sageResponse.stats.getSuspendTime());
-        spy.reportTransferSize(responseContent.getBytes("UTF-8").length);
+        double resume = sageResponse.stats.getResumeTime();
+        double suspend = sageResponse.stats.getSuspendTime();
+        spy.reportOverhead(resume, suspend);
+        int bytes = responseContent.getBytes("UTF-8").length;
+        spy.reportTransferSize(bytes);
         // format bindings in Jena format
         List<Binding> results = sageResponse.bindings.parallelStream().map(binding -> {
             BindingHashMap b = new BindingHashMap();
@@ -376,6 +382,12 @@ public class SageDefaultClient implements SageRemoteClient {
             }
             return b;
         }).collect(Collectors.toList());
+        double decodingTimeEnd = (System.currentTimeMillis()) - decodingTimeStart;
+        spy.reportDecodingResponseTime(decodingTimeEnd);
+        Date date = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd:HH:mm:ss:SS");
+
+        spy.reportLog("[HTTP( " + date +  ")] " + bytes + " bytes, resume(ms): " + resume + ", suspend(ms): " + suspend + ", decoding(ms): " + decodingTimeEnd + ", triple scanned: " + results.size());
         return new QueryResults(results, sageResponse.next, sageResponse.stats);
     }
 }
